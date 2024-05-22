@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуализация дифракционной картины от решетки</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1> Визуализация дифракционной картины от решетки</h1>
+
+<label for="numSlots">Количество щелей: </label>
+<input type="number" id="numSlots" step="1" value="2">
+
+<label for="slotSize">Размер щели (м): </label>
+<input type="number" id="slotSize" step="0.000001" value="0.000001">
+
+<label for="periodSlots">Расстояние между щелями (м): </label>
+<input type="number" id="periodSlots" step="0.000001" value="0.000001">
+
+<label for="waveLength">Длина волны (м): </label>
+<input type="number" id="waveLength" step="0.000001" value="0.000001">
+
+<label for="maxIntensive">Максимальная интенсивность (Вт/м^2): </label>
+<input type="number" id="maxIntensive" step="0.1" value="1">
+
+<canvas id="myChart" width="400" height="200"></canvas>
+
+<script>
+
+    function updateChart() {
+        const numSlots = Math.abs(parseInt(document.getElementById('numSlots').value));
+        const slotSize = Math.abs(parseFloat(document.getElementById('slotSize').value));
+        const periodSlots = Math.abs(parseFloat(document.getElementById('periodSlots').value));
+        const waveLength = Math.abs(parseFloat(document.getElementById('waveLength').value));
+        const maxIntensive = Math.abs(parseFloat(document.getElementById('maxIntensive').value));
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const data = {
+            labels: [],
+            datasets: [{
+                label: 'Интенсивность (Вт/м^2)',
+                data: [],
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        };
+
+        for (let sin = -1; sin <= 1; sin += 0.001) {
+            data.labels.push(sin.toFixed(4));
+            let u = Math.PI * slotSize * sin / waveLength
+            let I = maxIntensive * Math.pow(Math.sin(numSlots * Math.PI * periodSlots * sin / waveLength) / Math.sin(Math.PI * periodSlots * sin / waveLength), 2) * Math.pow(Math.sin(u) / u, 2)
+            data.datasets[0].data.push(I.toFixed(10));
+
+        }
+
+        if (window.myLineChart) {
+            window.myLineChart.data = data;
+            window.myLineChart.update();
+        } else {
+            window.myLineChart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Синус угла дифракции'
+                            }
+                        },
+                    }
+                }
+            });
+        }
+    }
+
+    document.getElementById('numSlots').addEventListener('input', updateChart);
+    document.getElementById('slotSize').addEventListener('input', updateChart);
+    document.getElementById('periodSlots').addEventListener('input', updateChart);
+    document.getElementById('waveLength').addEventListener('input', updateChart);
+    document.getElementById('maxIntensive').addEventListener('input', updateChart);
+
+    updateChart();
+</script>
+</body>
+</html>
